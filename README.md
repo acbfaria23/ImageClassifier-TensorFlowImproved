@@ -2,7 +2,7 @@
 Image Style Classifier using deep learning 
 This is an improved network using tensorflow
 
-the code summarized does:
+the code summarized does:\n
 1 - gets images on folder and append in a big array.
 2 - convert images in one big tensor of color values
 3 - set cnn parameters
