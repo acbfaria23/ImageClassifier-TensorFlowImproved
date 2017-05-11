@@ -1,7 +1,7 @@
 # ImageClassifier_TensorFlow-Improved-
 Image Style Classifier using deep learning 
 
-This is an improved CNN using tensorflow
+This is an improved CNN for classifing image asthetic styles using tensorflow
 
 Summarizing, this code does:
 
