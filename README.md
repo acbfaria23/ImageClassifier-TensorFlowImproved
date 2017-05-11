@@ -1,19 +1,21 @@
 # ImageClassifier_TensorFlow-Improved-
 Image Style Classifier using deep learning 
 
-This is an improved network using tensorflow
+This is an improved CNN using tensorflow
 
-this code summarizing does:
+Summarizing, this code does:
 
-1 - gets images on folder and append in a big array.
+1 - gets images on folder and append it in a big array.
+  image source: flicker groups.
 
 2 - convert images in one big tensor of color values
 
 3 - set cnn parameters
 
-4 - network model
+4 - define network model
 
 5 - set a array for labeling and compare each image style
+    first version: the styles are noir, bright and long-exposure.
 
 5 - set training 
 
