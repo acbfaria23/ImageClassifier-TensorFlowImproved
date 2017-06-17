@@ -1,5 +1,3 @@
-#from __future__ import print_function
-
 import tensorflow as tf
 import cv2
 import os
@@ -41,11 +39,15 @@ def call(fpointer):
     totalOfNoirValidImages = len(getImagesInFolder("estilos/validation/Noir"))
     totalOfLongExposureTrainImage = len(getImagesInFolder("estilos/training/LongExposure"))
     totalOfLongExposureValidImage = len(getImagesInFolder("estilos/validation/LongExposure"))
+    totalOfMinTrainImage = len(getImagesInFolder("estilos/training/Minimalist"))
+    totalOfMinValidImage = len(getImagesInFolder("estilos/validation/Minimalist"))
 
     listOfTrainImages.extend(getImagesInFolder("estilos/training/Noir"))
     listOfTrainImages.extend(getImagesInFolder("estilos/training/LongExposure"))
+    listOfTrainImages.extend(getImagesInFolder("estilos/training/Minimalist"))
     listOfValidImages.extend(getImagesInFolder("estilos/validation/Noir"))
     listOfValidImages.extend(getImagesInFolder("estilos/validation/LongExposure"))
+    listOfValidImages.extend(getImagesInFolder("estilos/validation/Minimalist"))
 
     vectorizedArrayOfTrainImages = createVectorizedArrayOfImages(listOfTrainImages)
     vectorizedArrayOfValidImages = createVectorizedArrayOfImages(listOfValidImages)
@@ -53,7 +55,7 @@ def call(fpointer):
     # Parameters
     learning_rate = 0.0001
     training_iters = 200000
-    batch_size = 56
+    batch_size = 56*3
     display_step = 10
 
     # Network Parameters / 3 is the number of color channels
@@ -162,6 +164,10 @@ def call(fpointer):
         
         for i in range(totalOfLongExposureTrainImage):
             train_labels = np.vstack((train_labels, [0, 0, 1]))
+            
+        for i in range(totalOfMinTrainImage):
+            train_labels = np.vstack((train_labels, [1, 1, 1]))
+            
         #same on testing
         test_labels = np.empty([0, 3])
         for i in range(totalOfBrightValidImages):
@@ -171,7 +177,10 @@ def call(fpointer):
             test_labels = np.vstack((test_labels, [1, 0, 0]))
 
         for i in range(totalOfLongExposureValidImage):
-            train_labels = np.vstack((train_labels, [0, 0, 1]))
+            test_labels = np.vstack((test_labels, [0, 0, 1]))
+            
+        for i in range(totalOfMinValidImage):
+            test_labels = np.vstack((test_labels, [1, 1, 1]))
             
         while step < training_iters:
             #batch_x, batch_y = mnist.train.next_batch(batch_size)
