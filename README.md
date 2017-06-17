@@ -6,7 +6,8 @@ This is an improved CNN for classifing image asthetic styles using tensorflow
 Summarizing, this code does:
 
 1 - gets images on folder and append it in a big array.
-  image source: flicker groups.
+  image source: flicker groups and pinterest.
+  Download dataset used at: https://drive.google.com/drive/folders/0BznDcpqi4yXxbEc0NkdZVzdaUGc?usp=sharing
 
 2 - convert images in one big tensor of color values
 
