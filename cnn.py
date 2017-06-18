@@ -1,10 +1,12 @@
 import tensorflow as tf
+import tflearn
 import cv2
 import os
 import numpy as np
 
 #used on resize
 imageDimension = 56
+
 
 #links all the images in one list
 def getImagesInFolder(folderPath):
@@ -29,6 +31,7 @@ def createVectorizedArrayOfImages(listOfImages):
 
 
 def call(fpointer):
+    
     #actually gets the images from the directory training and validation
     listOfTrainImages = getImagesInFolder("estilos/training/Bright")
     listOfValidImages = getImagesInFolder("estilos/validation/Bright")
@@ -55,14 +58,15 @@ def call(fpointer):
     # Parameters
     learning_rate = 0.0001
     training_iters = 200000
-    batch_size = 56*3
+    batch_size = 56
     display_step = 10
-
+    #saving for tensorBoard
+    model_visualStyle = 'class4Estilos-{}-{}.model'.format(learning_rate,'2conv')
     # Network Parameters / 3 is the number of color channels
     n_input = imageDimension * imageDimension * 3 # MNIST data input (img shape: 28*28)
-    n_classes = 3 # MNIST total classes (0-9 digits)
+    n_classes = 4 # MNIST total classes (0-9 digits)
     dropout = 0.75 # Dropout, probability to keep units
-
+    
 
     # tf Graph input
     x = tf.placeholder(tf.float32, [None, n_input])
@@ -89,16 +93,21 @@ def call(fpointer):
         conv1 = conv2d(x, weights['wc1'], biases['bc1'])
         # Max Pooling (down-sampling)
         conv1 = maxpool2d(conv1, k=3)
-
+        
         # Convolution Layer
         conv2 = conv2d(conv1, weights['wc2'], biases['bc2'])
         # Max Pooling (down-sampling)
-        conv2 = maxpool2d(conv2, k=3)
+        conv1 = maxpool2d(conv2, k=3)
+       
+        # Convolution Layer
+        conv3 = conv2d(conv2, weights['wc3'], biases['bc3'])
+        # Max Pooling (down-sampling)
+        conv3 = maxpool2d(conv3, k=3)      
 
         # Fully connected layer
         # Reshape conv2 output to fit fully connected layer input
 
-        fc1 = tf.reshape(conv2, [-1, weights['wd1'].get_shape().as_list()[0]])
+        fc1 = tf.reshape(conv3, [-1, weights['wd1'].get_shape().as_list()[0]])
         fc1 = tf.add(tf.matmul(fc1, weights['wd1']), biases['bd1'])
         fc1 = tf.nn.relu(fc1)
         # Apply Dropout
@@ -112,9 +121,13 @@ def call(fpointer):
     # Store layers weight & bias
     weights = {
         # 5x5 conv, 3 input channels, 32 outputs
-        'wc1': tf.Variable(tf.random_normal([5, 5, 3, 32])),
+        'wc1': tf.Variable(tf.random_normal([5, 5, 3, 16])),
+        
+        # 5x5 conv, 3 input channels, 32 outputs
+        'wc2': tf.Variable(tf.random_normal([5, 5, 16, 32])),
         # 5x5 conv, 32 inputs, 64 outputs
-        'wc2': tf.Variable(tf.random_normal([5, 5, 32, 64])),
+        
+        'wc3': tf.Variable(tf.random_normal([5, 5, 32, 64])),
 
         # fully connected, 7*7*64 inputs, 1024 outputs
         'wd1': tf.Variable(tf.random_normal([7*7*64, 1024])),
@@ -123,8 +136,9 @@ def call(fpointer):
     }
 
     biases = {
-        'bc1': tf.Variable(tf.random_normal([32])),
-        'bc2': tf.Variable(tf.random_normal([64])),
+        'bc1': tf.Variable(tf.random_normal([16])),
+        'bc2': tf.Variable(tf.random_normal([32])),
+        'bc3': tf.Variable(tf.random_normal([64])),
         'bd1': tf.Variable(tf.random_normal([1024])),
         'out': tf.Variable(tf.random_normal([n_classes]))
     }
@@ -155,32 +169,32 @@ def call(fpointer):
         test_xdata = vectorizedArrayOfValidImages
 
         ##each array represents one image style
-        train_labels = np.empty([0, 3])
+        train_labels = np.empty([0, 4])
         for i in range(totalOfBrightTrainImages):
-            train_labels = np.vstack((train_labels, [0, 1, 0]))
+            train_labels = np.vstack((train_labels, [0, 1, 0, 0]))
 
         for i in range(totalOfNoirTrainImages):
-            train_labels = np.vstack((train_labels, [1, 0, 0]))
+            train_labels = np.vstack((train_labels, [1, 0, 0, 0]))
         
         for i in range(totalOfLongExposureTrainImage):
-            train_labels = np.vstack((train_labels, [0, 0, 1]))
+            train_labels = np.vstack((train_labels, [0, 0, 1, 0]))
             
         for i in range(totalOfMinTrainImage):
-            train_labels = np.vstack((train_labels, [1, 1, 1]))
+            train_labels = np.vstack((train_labels, [1, 1, 1, 1]))
             
         #same on testing
-        test_labels = np.empty([0, 3])
+        test_labels = np.empty([0, 4])
         for i in range(totalOfBrightValidImages):
-            test_labels = np.vstack((test_labels, [0, 1, 0]))
+            test_labels = np.vstack((test_labels, [0, 1, 0, 0]))
 
         for i in range(totalOfNoirValidImages):
-            test_labels = np.vstack((test_labels, [1, 0, 0]))
+            test_labels = np.vstack((test_labels, [1, 0, 0, 0]))
 
         for i in range(totalOfLongExposureValidImage):
-            test_labels = np.vstack((test_labels, [0, 0, 1]))
+            test_labels = np.vstack((test_labels, [0, 0, 1, 0]))
             
         for i in range(totalOfMinValidImage):
-            test_labels = np.vstack((test_labels, [1, 1, 1]))
+            test_labels = np.vstack((test_labels, [1, 1, 1, 1]))
             
         while step < training_iters:
             #batch_x, batch_y = mnist.train.next_batch(batch_size)
@@ -225,7 +239,8 @@ def call(fpointer):
                     min_test_loss = test_loss
 
             step += 1
- 
+            #saving for tensorBoard
+            #model.save = (model_visualStyle)
         print("Optimization Finished!")
 #running the code
 call(0)
